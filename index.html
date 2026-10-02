@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Bosons and Fermions, Interactively</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  --bg:#EDF1F4; --surface:#F8FAFC; --ink:#15202B; --muted:#56636F; --rule:#C5CFD7; --band:#E2E8ED;
+  --fermion:#2B67D1; --boson:#B22F6A; --boltz:#2E7A57; --res:#8B98A4;
+  --serif:"Newsreader",Georgia,"Times New Roman",serif;
+  --sans:"Instrument Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0E151C; --surface:#141D26; --ink:#E3E9EE; --muted:#97A4B0; --rule:#2B3743; --band:#1B2631;
+    --fermion:#6E9FF2; --boson:#EC6FA6; --boltz:#5CC593; --res:#5B6976;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0E151C; --surface:#141D26; --ink:#E3E9EE; --muted:#97A4B0; --rule:#2B3743; --band:#1B2631;
+  --fermion:#6E9FF2; --boson:#EC6FA6; --boltz:#5CC593; --res:#5B6976;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--serif);font-size:1.1rem;line-height:1.62;-webkit-font-smoothing:antialiased}
+img,canvas{max-width:100%}
+a{color:var(--fermion)}
+:focus-visible{outline:2px solid var(--fermion);outline-offset:3px;border-radius:2px}
+.wrap{max-width:1080px;margin:0 auto;padding:0 clamp(1rem,4vw,2.5rem)}
+.prose{max-width:40rem}
+
+header.hero{padding:clamp(2.5rem,7vw,5rem) 0 1.5rem}
+.credit{font-family:var(--sans);font-size:.9rem;color:var(--muted);margin:0 0 1.25rem}
+h1{font-weight:500;font-size:clamp(2.5rem,7.5vw,5.25rem);line-height:.98;letter-spacing:-.025em;margin:0 0 1.25rem;max-width:12ch}
+h1 .b{color:var(--boson)} h1 .f{color:var(--fermion)}
+.lede{font-size:clamp(1.15rem,2.2vw,1.35rem);max-width:36rem;margin:0}
+
+section{padding:clamp(2.5rem,6vw,4rem) 0;border-top:1px solid var(--rule)}
+section:first-of-type{border-top:0;padding-top:1rem}
+h2{font-weight:500;font-size:clamp(1.7rem,3.5vw,2.35rem);line-height:1.1;letter-spacing:-.015em;margin:0 0 1rem}
+h3{font-family:var(--sans);font-weight:600;font-size:1rem;margin:1.75rem 0 .5rem}
+p{margin:0 0 1rem}
+.note{font-size:.95rem;color:var(--muted)}
+
+.eq{display:block;text-align:center;margin:1.25rem 0;overflow-x:auto;overflow-y:hidden;padding:.25rem 0}
+mjx-container{color:inherit}
+mjx-container[display="true"]{margin:0 !important}
+.stats mjx-container,.legend mjx-container,.cap mjx-container,.ctl small mjx-container{font-size:105%}
+.ctl output mjx-container{font-size:95%}
+.boxed{display:inline-block;border:1.5px solid var(--rule);padding:.5rem 1rem;border-radius:3px}
+.boxed.f{border-color:var(--fermion)} .boxed.b{border-color:var(--boson)} .boxed.z{border-color:var(--boltz)}
+
+.fig{display:grid;grid-template-columns:minmax(0,1fr) 17rem;gap:1.5rem;align-items:start;margin-top:1.5rem}
+@media (max-width:820px){.fig{grid-template-columns:1fr}}
+.panel{background:var(--surface);border:1px solid var(--rule);border-radius:6px;padding:1rem}
+.canvas-holder{background:var(--surface);border:1px solid var(--rule);border-radius:6px;overflow:hidden}
+canvas{display:block;width:100%}
+
+.ctl{font-family:var(--sans);font-size:.9rem;margin-bottom:1.1rem}
+.ctl:last-child{margin-bottom:0}
+.ctl label,.ctl .lbl{display:flex;justify-content:space-between;align-items:baseline;gap:.75rem;font-weight:500;margin-bottom:.3rem}
+.ctl .lt{flex:1 1 auto}
+.ctl output{flex:0 0 auto;white-space:nowrap;font-variant-numeric:tabular-nums;color:var(--muted);font-weight:400}
+.ctl small{display:block;color:var(--muted);line-height:1.4;margin-top:.25rem}
+input[type=range]{width:100%;accent-color:var(--fermion);margin:0}
+select{font-family:var(--sans);font-size:.9rem;color:var(--ink);background:var(--surface);border:1px solid var(--rule);border-radius:4px;padding:.4rem .5rem;width:100%}
+.btns{display:flex;flex-wrap:wrap;gap:.5rem}
+button{font-family:var(--sans);font-size:.88rem;font-weight:500;color:var(--ink);background:transparent;border:1px solid var(--rule);border-radius:4px;padding:.45rem .8rem;cursor:pointer}
+button:hover{border-color:var(--ink)}
+button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.check{display:flex;align-items:center;gap:.5rem;font-family:var(--sans);font-size:.9rem;font-weight:500;cursor:pointer;margin-bottom:.4rem}
+.check input{width:1rem;height:1rem;margin:0}
+
+.stats{font-family:var(--sans);font-size:.9rem;display:grid;grid-template-columns:auto auto;gap:.35rem 1rem;margin:0}
+.stats dt{color:var(--muted)}
+.stats dd{margin:0;text-align:right;font-variant-numeric:tabular-nums;font-weight:500}
+.legend{font-family:var(--sans);font-size:.85rem;color:var(--muted);display:flex;flex-wrap:wrap;gap:1rem;margin:.6rem 0 0}
+.swatch{display:inline-block;width:.75rem;height:.75rem;border-radius:2px;vertical-align:-1px;margin-right:.35rem}
+.cap{font-family:var(--sans);font-size:.85rem;color:var(--muted);margin:.5rem .25rem 0}
+
+/* counting */
+.counts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.75rem;margin-top:1.25rem}
+@media (max-width:700px){.counts{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.count{background:var(--surface);border:1px solid var(--rule);border-radius:6px;padding:.85rem .9rem;font-family:var(--sans)}
+.count .n{font-family:var(--serif);font-size:clamp(1.9rem,4vw,2.6rem);line-height:1;font-variant-numeric:tabular-nums;margin:.35rem 0 .4rem}
+.count .t{font-size:.9rem;font-weight:600}
+.count .d{font-size:.82rem;color:var(--muted);line-height:1.4}
+.count.b{box-shadow:inset 0 3px 0 var(--boson)} .count.f{box-shadow:inset 0 3px 0 var(--fermion)} .count.z{box-shadow:inset 0 3px 0 var(--boltz)}
+.chips{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1rem}
+.chip{display:inline-flex;align-items:center;gap:2px;padding:4px;border:1px solid var(--rule);border-radius:4px;background:var(--surface);position:relative}
+.chip .cell{width:22px;height:22px;border:1.5px solid var(--muted);border-radius:2px;display:flex;align-items:center;justify-content:center;gap:2px;flex-wrap:wrap;padding:1px}
+.chip .dot{width:7px;height:7px;border-radius:50%;background:var(--ink)}
+.chip .dot.c1{background:var(--fermion)} .chip .dot.c2{background:var(--boson)} .chip .dot.c3{background:var(--boltz)} .chip .dot.c4{background:var(--muted)}
+.chip .mult{font-family:var(--sans);font-size:.75rem;font-weight:600;color:var(--muted);margin-left:.3rem}
+.chip.out{opacity:.28}
+.chip.out::after{content:"";position:absolute;left:4px;right:4px;top:50%;border-top:2px solid var(--fermion);transform:rotate(-8deg)}
+.sum{font-family:var(--sans);font-size:.95rem;margin:1rem 0 0}
+.sum b{font-weight:600}
+
+.verdict{font-family:var(--sans);font-size:1rem;font-weight:500;margin:.75rem 0 0}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem;margin-top:1.25rem}
+@media (max-width:700px){.two{grid-template-columns:1fr}}
+
+footer{border-top:1px solid var(--rule);padding:2rem 0 3rem;font-family:var(--sans);font-size:.9rem;color:var(--muted)}
+footer p{margin:0 0 .4rem}
+</style>
+<script>
+window.MathJax = {
+  tex: { inlineMath: [['\\(','\\)']], displayMath: [['\\[','\\]']] },
+  svg: { fontCache: 'global' },
+  options: { enableMenu: false }
+};
+</script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.js"></script>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <p class="credit">An interactive demo created by Claude Opus 5.5, based on the lecture notes by Sang Hoon Lee (Chapter 7, Section 7.2, Bosons and Fermions)</p>
+  <h1><span class="b">Bosons</span> and <span class="f">Fermions</span></h1>
+  <p class="lede">Quantum statistics is the study of dense systems in which two or more identical particles have a reasonable chance of wanting to occupy the same single-particle state. Whether they are allowed to share it changes everything.</p>
+</header>
+
+<!-- ============ COUNTING ============ -->
+<section id="count" aria-labelledby="h-count">
+  <h2 id="h-count">Counting states</h2>
+  <div class="prose">
+    <p>Take \(N\) noninteracting particles and a handful of single-particle states, all with energy zero. Then every Boltzmann factor is \(e^{-\beta E} = 1\) and the partition function simply counts system states, \(Z = \Omega\). With 2 particles and 5 states, distinguishable particles give \(Z = 5 \times 5 = 25\), but the shortcut for indistinguishable particles from Section 6.6 gives
+    \(Z_1^N/N! = 5^2/2! = 12.5\). Half a state?</p>
+    <p>The shortcut assumes the particles are always in different states. Choose who you are counting and see what really happens.</p>
+  </div>
+
+  <div class="fig">
+    <div>
+      <div class="ctl btns" role="group" aria-label="Kind of particle">
+        <button type="button" data-mode="dist">Distinguishable</button>
+        <button type="button" data-mode="boson" aria-pressed="true">Bosons</button>
+        <button type="button" data-mode="fermion">Fermions</button>
+      </div>
+      <p class="cap" id="modeCap" style="margin-left:0"></p>
+      <div class="chips" id="chips" aria-live="polite"></div>
+      <p class="sum" id="sumLine"></p>
+    </div>
+    <div class="panel">
+      <div class="ctl">
+        <label for="nPart"><span class="lt">Particles \(N\)</span> <output id="nPartOut"></output></label>
+        <input type="range" id="nPart" min="1" max="6" step="1" value="2">
+      </div>
+      <div class="ctl">
+        <label for="mStates"><span class="lt">Single-particle states \(Z_1\)</span> <output id="mStatesOut"></output></label>
+        <input type="range" id="mStates" min="1" max="12" step="1" value="5">
+      </div>
+      <div class="ctl btns"><button type="button" id="lectureCount">Lecture example: 2 in 5</button></div>
+    </div>
+  </div>
+
+  <div class="counts">
+    <div class="count"><div class="t">Distinguishable</div><div class="n" id="cDist">–</div><div class="d">\(Z_1^N\)</div></div>
+    <div class="count z"><div class="t">The \(1/N!\) shortcut</div><div class="n" id="cBoltz">–</div><div class="d">\(Z_1^N/N!\), not always a whole number</div></div>
+    <div class="count b"><div class="t">Bosons</div><div class="n" id="cBos">–</div><div class="d">\(\dbinom{Z_1+N-1}{N}\), any occupancy allowed</div></div>
+    <div class="count f"><div class="t">Fermions</div><div class="n" id="cFer">–</div><div class="d">\(\dbinom{Z_1}{N}\), at most one per state</div></div>
+  </div>
+
+  <h3>When the particles have plenty of room</h3>
+  <p class="prose">When the number of available single-particle states is much greater than the number of particles, \(Z_1 \gg N\), the chance of any two particles wanting the same state is negligible. Then all three quantum-correct counts approach the \(1/N!\) shortcut, and it just doesn’t matter whether the particles are bosons or fermions. The chart shows each count divided by \(Z_1^N/N!\) for the current \(N\).</p>
+  <div class="canvas-holder"><canvas id="convCanvas" aria-label="Ratio of boson and fermion counts to the Boltzmann count as the number of states grows"></canvas></div>
+  <div class="legend">
+    <span><span class="swatch" style="background:var(--boson)"></span>Bosons ÷ shortcut</span>
+    <span><span class="swatch" style="background:var(--fermion)"></span>Fermions ÷ shortcut</span>
+    <span>Dot marks the current \(Z_1\)</span>
+  </div>
+</section>
+
+<!-- ============ SPIN ============ -->
+<section id="spin" aria-labelledby="h-spin">
+  <h2 id="h-spin">Who may share a state</h2>
+  <div class="prose">
+    <p>Some types of particles can occupy the same state, while others can’t. <strong>Bosons</strong> have integer spin (\(0, 1, 2, \ldots\) in units of \(\hbar\)): photons, pions, helium-4 atoms. <strong>Fermions</strong> have half-integer spin (\(\tfrac12, \tfrac32, \ldots\)): electrons, protons, neutrons, neutrinos, helium-3 atoms.</p>
+    <p>Fermions obey the Pauli exclusion principle. They avoid sharing a state not because they physically repel each other, but because of quantum mechanics. That is why choosing <em>Fermions</em> above crosses out every doubly occupied state, leaving 10 of the 15 boson states in the lecture example.</p>
+  </div>
+</section>
+
+<!-- ============ QUANTUM VOLUME ============ -->
+<section id="vq" aria-labelledby="h-vq">
+  <h2 id="h-vq">When does it matter?</h2>
+  <div class="prose">
+    <p>For a nonrelativistic ideal gas, \(Z_1 = V Z_{\text{int}}/v_Q\), where \(Z_{\text{int}}\) is some reasonably small number and the quantum volume is roughly the cube of the average de Broglie wavelength:</p>
+    <div class="eq">\[ v_Q = \ell_Q^3 = \left(\frac{h}{\sqrt{2\pi m k_{\mathrm{B}} T}}\right)^3 \]</div>
+    <p>So \(Z_1 \gg N\) means</p>
+    <div class="eq"><span class="boxed">\( \displaystyle \frac{V}{N} \gg v_Q \)</span></div>
+    <p>The average distance between particles must be much greater than their average de Broglie wavelength. Gases become quantum when they are very dense, very cold, or made of very light particles. Each gray halo below has the diameter \(\ell_Q\).</p>
+  </div>
+
+  <div class="fig">
+    <div>
+      <div class="canvas-holder"><canvas id="vqCanvas" aria-label="Particles drawn at their average spacing with halos the size of the de Broglie wavelength"></canvas></div>
+      <p class="verdict" id="vqVerdict"></p>
+    </div>
+    <div class="panel">
+      <div class="ctl btns" role="group" aria-label="Examples">
+        <button type="button" data-preset="air">Air</button>
+        <button type="button" data-preset="he">Liquid helium-4</button>
+        <button type="button" data-preset="cu">Electrons in copper</button>
+        <button type="button" data-preset="ns">Neutron star</button>
+      </div>
+      <div class="ctl">
+        <label for="massSel"><span class="lt">Particle</span></label>
+        <select id="massSel">
+          <option value="n2">Nitrogen molecule (28 u)</option>
+          <option value="he">Helium-4 atom (4.0 u)</option>
+          <option value="nu">Neutron (1.0 u)</option>
+          <option value="e">Electron</option>
+        </select>
+      </div>
+      <div class="ctl">
+        <label for="tLog"><span class="lt">Temperature \(T\)</span> <output id="tOut"></output></label>
+        <input type="range" id="tLog" min="-1" max="9" step="0.01" value="2.477">
+      </div>
+      <div class="ctl">
+        <label for="nLog"><span class="lt">Density \(N/V\)</span> <output id="nOut"></output></label>
+        <input type="range" id="nLog" min="18" max="45" step="0.01" value="25.39">
+      </div>
+      <dl class="stats">
+        <dt>Spacing \((V/N)^{1/3}\)</dt><dd id="vqD">–</dd>
+        <dt>\(\ell_Q\)</dt><dd id="vqL">–</dd>
+        <dt>\(V/(N v_Q)\)</dt><dd id="vqR">–</dd>
+      </dl>
+    </div>
+  </div>
+  <p class="prose note" style="margin-top:1.25rem">Neutron-star values are rough (interior temperature about \(10^8\ \mathrm{K}\), nuclear density). Photons in a hot oven are quantum too, but they are massless, so they need the separate treatment that comes later in the chapter.</p>
+</section>
+
+<!-- ============ DISTRIBUTIONS ============ -->
+<section id="dist" aria-labelledby="h-dist">
+  <h2 id="h-dist">The distribution functions</h2>
+  <div class="prose">
+    <p>Use the Gibbs factor, with a twist: let the <em>system</em> be one single-particle state of energy \(\varepsilon\), and the reservoir be all the other single-particle states. If the state holds \(n\) particles, its energy is \(n\varepsilon\), so</p>
+    <div class="eq"><span class="boxed">\( \displaystyle P(n) = \frac{1}{\mathcal{Z}}\, e^{-(n\varepsilon - \mu n)/k_{\mathrm{B}}T} = \frac{1}{\mathcal{Z}}\, e^{-n(\varepsilon - \mu)/k_{\mathrm{B}}T} \)</span></div>
+    <p>where \(\mathcal{Z}\) sums the Gibbs factors over all <em>possible</em> \(n\). For fermions, \(n = 0\) or \(1\):</p>
+    <div class="eq">\[ \mathcal{Z} = 1 + e^{-(\varepsilon-\mu)/k_{\mathrm{B}}T}, \qquad \bar{n} = 0\cdot P(0) + 1\cdot P(1) = \frac{e^{-(\varepsilon-\mu)/k_{\mathrm{B}}T}}{1 + e^{-(\varepsilon-\mu)/k_{\mathrm{B}}T}} \]</div>
+    <div class="eq"><span class="boxed f">\( \displaystyle \bar{n}_{\mathrm{FD}} = \frac{1}{e^{(\varepsilon-\mu)/k_{\mathrm{B}}T} + 1} \)</span>&ensp;<span class="note">Fermi–Dirac</span></div>
+    <p>For bosons, \(n = 0, 1, 2, \ldots\), and the Gibbs sum is a geometric series in \(x = e^{-(\varepsilon-\mu)/k_{\mathrm{B}}T}\). It converges only if \(x < 1\), so only states with \(\varepsilon > \mu\) are allowed:</p>
+    <div class="eq">\[ \mathcal{Z} = \sum_{n=0}^{\infty} x^n = \frac{1}{1 - e^{-(\varepsilon-\mu)/k_{\mathrm{B}}T}} \]</div>
+    <p>With \(u \equiv (\varepsilon-\mu)/k_{\mathrm{B}}T\) and the result of Problem 7.6,</p>
+    <div class="eq">\[ \bar{n} = \frac{k_{\mathrm{B}}T}{\mathcal{Z}}\frac{\partial \mathcal{Z}}{\partial \mu} = -\frac{1}{\mathcal{Z}}\frac{\partial \mathcal{Z}}{\partial u} = \frac{e^{-u}}{1 - e^{-u}} \]</div>
+    <div class="eq"><span class="boxed b">\( \displaystyle \bar{n}_{\mathrm{BE}} = \frac{1}{e^{(\varepsilon-\mu)/k_{\mathrm{B}}T} - 1} \)</span>&ensp;<span class="note">Bose–Einstein</span></div>
+    <p>For comparison, Boltzmann statistics gives \(\bar{n} = N P(s) = (N/Z_1)\, e^{-\varepsilon/k_{\mathrm{B}}T}\), and with \(\mu = -k_{\mathrm{B}}T\ln(Z_1/N)\) from Problem 6.44:</p>
+    <div class="eq"><span class="boxed z">\( \displaystyle \bar{n}_{\mathrm{Boltzmann}} = e^{-(\varepsilon-\mu)/k_{\mathrm{B}}T} \)</span></div>
+  </div>
+
+  <div class="fig">
+    <div>
+      <div class="canvas-holder"><canvas id="distCanvas" aria-label="Occupancy versus energy for Fermi-Dirac, Bose-Einstein and Boltzmann statistics"></canvas></div>
+      <div class="legend">
+        <span><span class="swatch" style="background:var(--fermion)"></span>Fermi–Dirac</span>
+        <span><span class="swatch" style="background:var(--boson)"></span>Bose–Einstein</span>
+        <span><span class="swatch" style="background:var(--boltz)"></span>Boltzmann</span>
+        <span>Shaded: \(\varepsilon < \mu\), forbidden for bosons</span>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="ctl">
+        <label for="muS"><span class="lt">Chemical potential \(\mu\)</span> <output id="muOut"></output></label>
+        <input type="range" id="muS" min="0.1" max="0.9" step="0.005" value="0.4">
+      </div>
+      <div class="ctl">
+        <label for="kTS"><span class="lt">\(k_{\mathrm{B}}T\)</span> <output id="kTOut"></output></label>
+        <input type="range" id="kTS" min="0.004" max="0.2" step="0.001" value="0.05">
+        <small>Temperature controls the sharpness of the step.</small>
+      </div>
+      <div class="ctl">
+        <label for="epsS"><span class="lt">Probe energy \(\varepsilon\)</span> <output id="epsOut"></output></label>
+        <input type="range" id="epsS" min="0" max="1" step="0.002" value="0.5">
+      </div>
+      <div class="ctl">
+        <label class="check"><input type="checkbox" id="logY"> Logarithmic occupancy axis</label>
+      </div>
+      <dl class="stats">
+        <dt>\(u = (\varepsilon-\mu)/k_{\mathrm{B}}T\)</dt><dd id="uVal">–</dd>
+        <dt>\(\bar{n}_{\mathrm{FD}}\)</dt><dd id="nFD">–</dd>
+        <dt>\(\bar{n}_{\mathrm{BE}}\)</dt><dd id="nBE">–</dd>
+        <dt>\(\bar{n}_{\mathrm{Boltzmann}}\)</dt><dd id="nBZ">–</dd>
+      </dl>
+    </div>
+  </div>
+
+  <h3>Inside one state</h3>
+  <p class="prose">The probe state’s occupation probabilities \(P(n)\). A fermion state is either empty or full. A boson state follows a geometric distribution, \(P(n) = (1-x)\,x^n\), whose tail grows longer as \(\varepsilon\) approaches \(\mu\) from above.</p>
+  <div class="canvas-holder" style="margin-top:1rem"><canvas id="pnCanvas" aria-label="Occupation probabilities of the probe state for fermions and bosons"></canvas></div>
+
+  <h3>The classical limit</h3>
+  <p class="prose">\(\bar{n}_{\mathrm{FD}} \to 1\) when \(\varepsilon \ll \mu\) and \(\bar{n}_{\mathrm{FD}} = \tfrac12\) exactly at \(\varepsilon = \mu\). \(\bar{n}_{\mathrm{BE}} \to \infty\) as \(\varepsilon \to \mu\) from above. But when \(\varepsilon - \mu \gg k_{\mathrm{B}}T\), the \(\pm 1\) in the denominator is negligible and all three distributions converge to \(e^{-(\varepsilon-\mu)/k_{\mathrm{B}}T}\): the classical limit. Switch on the logarithmic axis and move the probe to the right to watch them merge.</p>
+</section>
+</div>
+
+<footer>
+  <div class="wrap">
+    <p>Created by Claude Opus 5.5, based on the lecture notes by Sang Hoon Lee on quantum statistics (Section 7.2, Bosons and Fermions).</p>
+    <p>Constants: \(h = 6.626 \times 10^{-34}\ \mathrm{J\,s}\), \(k_{\mathrm{B}} = 1.381 \times 10^{-23}\ \mathrm{J/K}\). Equations typeset with MathJax.</p>
+  </div>
+</footer>
+
+<script>
+(function(){
+"use strict";
+const $ = id => document.getElementById(id);
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+let C = {};
+function readColors(){
+  const cs = getComputedStyle(document.documentElement);
+  ['bg','surface','ink','muted','rule','band','fermion','boson','boltz','res'].forEach(k => C[k] = cs.getPropertyValue('--'+k).trim());
+}
+readColors();
+const SANS = '"Instrument Sans", system-ui, sans-serif';
+const SERIF = '"Newsreader", Georgia, serif';
+
+function fit(cv, LW, LH){
+  const w = cv.parentElement.clientWidth || LW, h = w*LH/LW;
+  cv.style.height = h + 'px';
+  const d = window.devicePixelRatio || 1;
+  cv.width = Math.round(w*d); cv.height = Math.round(h*d);
+  const ctx = cv.getContext('2d'); const s = w*d/LW;
+  ctx.setTransform(s,0,0,s,0,0);
+  return ctx;
+}
+// Rich canvas text: parts = [[text, style]], style: 'i' italic, 'r' roman, 's' sans, 'sub' subscript, 'ibar' italic with overbar.
+function rich(c, x, y, size, parts, align){
+  c.save(); c.textAlign = 'left';
+  const fontOf = st => st==='i'||st==='ibar' ? 'italic '+size+'px '+SERIF : st==='sub' ? (size*0.7)+'px '+SERIF : st==='s' ? (size*0.88)+'px '+SANS : size+'px '+SERIF;
+  const widths = parts.map(([t,st]) => { c.font = fontOf(st); return c.measureText(t).width; });
+  const total = widths.reduce((a,b)=>a+b,0);
+  let cx = align==='center' ? x-total/2 : align==='right' ? x-total : x;
+  parts.forEach(([t,st],i) => {
+    c.font = fontOf(st);
+    const dy = st==='sub' ? size*0.25 : 0;
+    c.fillText(t, cx, y+dy);
+    if (st==='ibar'){ c.strokeStyle = c.fillStyle; c.lineWidth = Math.max(1,size/13); const by=y-size*0.62, sl=size*0.1; c.beginPath(); c.moveTo(cx+widths[i]*0.12+sl,by); c.lineTo(cx+widths[i]*0.95+sl,by); c.stroke(); }
+    cx += widths[i];
+  });
+  c.restore();
+  return total;
+}
+function signed(x,d){ return (x<0?'−':'') + Math.abs(x).toFixed(d); }
+function sci(x, sig){
+  sig = sig || 3;
+  if (!isFinite(x)) return '–';
+  if (x === 0) return '0';
+  const e = Math.floor(Math.log10(Math.abs(x)));
+  if (e >= -2 && e < 6) return Number(x.toPrecision(sig)).toLocaleString('en-US',{maximumSignificantDigits:sig});
+  return (x/Math.pow(10,e)).toFixed(sig-1) + ' × 10<sup>' + e + '</sup>';
+}
+function niceNum(x){ return Number.isInteger(x) ? x.toLocaleString('en-US') : Number(x.toPrecision(6)).toLocaleString('en-US',{maximumFractionDigits:4}); }
+
+/* ================= COUNTING ================= */
+const LF = [0]; for (let k=1;k<=4100;k++) LF[k] = LF[k-1] + Math.log(k);
+const lchoose = (a,b) => (b<0||b>a) ? -Infinity : LF[a]-LF[b]-LF[a-b];
+const choose = (a,b) => (b<0||b>a) ? 0 : Math.round(Math.exp(lchoose(a,b)));
+const fact = n => Math.round(Math.exp(LF[n]));
+const K = {N:2, M:5, mode:'boson'};
+const LIST_MAX = 126;
+
+function occupations(M, N){
+  const out = [], cur = new Array(M).fill(0);
+  (function rec(i, left){
+    if (i === M-1){ cur[i] = left; out.push(cur.slice()); return; }
+    for (let k=left; k>=0; k--){ cur[i] = k; rec(i+1, left-k); }
+  })(0, N);
+  return out;
+}
+function chipHTML(occ, mode, N){
+  const dbl = occ.some(n => n>1);
+  let dotIdx = 0, cells = '';
+  for (const n of occ){
+    let dots = '';
+    for (let j=0;j<n;j++){ dots += '<span class="dot' + (mode==='dist' ? ' c'+(1+(dotIdx%4)) : '') + '"></span>'; dotIdx++; }
+    cells += '<span class="cell">' + dots + '</span>';
+  }
+  let mult = '';
+  if (mode === 'dist'){
+    let m = fact(N); occ.forEach(n => m /= fact(n));
+    mult = '<span class="mult">×' + m + '</span>';
+  }
+  const label = occ.join('');
+  return '<span class="chip' + (mode==='fermion' && dbl ? ' out' : '') + '" title="' + label + '" aria-label="occupation ' + label + (mode==='fermion'&&dbl?', not allowed for fermions':'') + '">' + cells + mult + '</span>';
+}
+function countRender(){
+  const {N, M, mode} = K;
+  $('nPartOut').textContent = N; $('mStatesOut').textContent = M;
+  document.querySelectorAll('[data-mode]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.mode===mode)));
+  const dist = Math.pow(M,N), boltz = dist/fact(N), bos = choose(M+N-1,N), fer = choose(M,N);
+  $('cDist').textContent = niceNum(dist); $('cBoltz').textContent = niceNum(boltz);
+  $('cBos').textContent = niceNum(bos); $('cFer').textContent = niceNum(fer);
+  const caps = {
+    dist: 'Each box is a single-particle state. Colors tell the particles apart, and “×” is how many labeled arrangements share each pattern of occupation numbers.',
+    boson: 'Each pattern of occupation numbers is one system state. Any number of bosons may share a state.',
+    fermion: 'Patterns with two or more particles in one state are crossed out: the Pauli exclusion principle forbids them.'
+  };
+  $('modeCap').textContent = caps[mode];
+  const total = bos;
+  let html = '';
+  if (total <= LIST_MAX){
+    const occs = occupations(M, N);
+    occs.sort((a,b) => (a.some(n=>n>1)?1:0) - (b.some(n=>n>1)?1:0));
+    html = occs.map(o => chipHTML(o, mode, N)).join('');
+  } else {
+    html = '<p class="note" style="margin:0">There are ' + total.toLocaleString('en-US') + ' occupation patterns, too many to draw. Lower <i>N</i> or the number of states to see them all.</p>';
+  }
+  $('chips').innerHTML = html;
+  // Decompose counts by occupation pattern multiplicity
+  const groupsD = new Map(), groupsB = new Map();
+  if (bos <= 6000){
+    for (const o of occupations(M,N)){
+      let p = 1; o.forEach(n => p *= fact(n));
+      const md = fact(N)/p;
+      groupsD.set(md, (groupsD.get(md)||0)+1);
+      groupsB.set(p, (groupsB.get(p)||0)+1);
+    }
+  }
+  const single = fer, multi = bos - fer;
+  let line = '';
+  if (mode === 'dist'){
+    const parts = [...groupsD.entries()].sort((a,b)=>b[0]-a[0]).map(([m,c]) => c + ' × ' + m);
+    line = '<b>' + parts.join(' + ') + ' = ' + niceNum(dist) + '</b> labeled states. ';
+    line += 'Dividing by <i>N</i>! = ' + fact(N) + ' undoes the ×' + fact(N) + ' only for the ' + single + ' patterns with all particles in different states.';
+  } else if (mode === 'boson'){
+    const parts = [...groupsB.entries()].sort((a,b)=>a[0]-b[0]).map(([p,c]) => c + (p===1 ? '' : ' × 1/' + p));
+    line = 'The 1/<i>N</i>! shortcut weights each pattern by 1/∏<i>n<sub>i</sub></i>!: <b>' + parts.join(' + ') + ' = ' + niceNum(boltz) + '</b>. ';
+    line += multi ? 'It counts the ' + single + ' all-different patterns correctly but undercounts the ' + multi + ' with shared states, which really count once each: <b>' + bos + '</b>.' : 'With no shared states possible, every pattern counts once.';
+  } else {
+    line = 'Only <b>' + fer + '</b> of the ' + bos + ' patterns survive. ' + (multi ? 'The 1/<i>N</i>! shortcut gives ' + niceNum(boltz) + ' because it still gives the ' + multi + ' forbidden patterns a fractional weight.' : '');
+  }
+  if (N > M && mode === 'fermion') line = 'With more fermions than states, no arrangement is allowed at all: <b>0</b> states.';
+  $('sumLine').innerHTML = line;
+  convRender();
+}
+function convRender(){
+  const c = convCtx; if (!c) return;
+  const W=900,H=260,L=56,R=20,T=16,B=40;
+  c.clearRect(0,0,W,H); c.fillStyle=C.surface; c.fillRect(0,0,W,H);
+  const N = K.N, xmin = Math.log10(Math.max(1,N)), xmax = Math.log10(2000), ymin=-2, ymax=2;
+  const X = lx => L + (lx-xmin)/(xmax-xmin)*(W-L-R);
+  const Y = ly => H-B - (Math.max(ymin,Math.min(ymax,ly))-ymin)/(ymax-ymin)*(H-T-B);
+  c.font='12px '+SANS; c.fillStyle=C.muted; c.textAlign='right';
+  [-2,-1,0,1,2].forEach(v => { c.strokeStyle = v===0 ? C.muted : C.band; c.lineWidth = 1; c.beginPath(); c.moveTo(L,Y(v)); c.lineTo(W-R,Y(v)); c.stroke(); c.fillText(v===0?'1':v>0?(v===1?'10':'100'):'0.'+'0'.repeat(-v-1)+'1', L-8, Y(v)+4); });
+  c.textAlign='center';
+  [1,10,100,1000].forEach(m => { const lx=Math.log10(m); if (lx>=xmin-1e-9 && lx<=xmax){ c.fillText(m.toLocaleString('en-US'), X(lx), H-B+18); c.strokeStyle=C.band; c.beginPath(); c.moveTo(X(lx),T); c.lineTo(X(lx),H-B); c.stroke(); }});
+  c.fillStyle=C.muted; rich(c, (L+W-R)/2, H-6, 15, [['Number of single-particle states ','s'],['Z','i'],['1','sub'],['  (log scale)','s']], 'center');
+  c.save(); c.translate(16,(H-B+T)/2); c.rotate(-Math.PI/2); c.textAlign='center'; c.font='12px '+SANS; c.fillText('count ÷ shortcut', 0, 0); c.restore();
+  const lratio = (M, which) => {
+    const lb = N*Math.log(M) - LF[N];
+    const lq = which==='b' ? lchoose(M+N-1,N) : lchoose(M,N);
+    return (lq - lb)/Math.LN10;
+  };
+  [['b',C.boson],['f',C.fermion]].forEach(([w,col]) => {
+    c.strokeStyle=col; c.lineWidth=2.5; c.beginPath(); let started=false;
+    for (let i=0;i<=400;i++){
+      const lx = xmin + (xmax-xmin)*i/400, M = Math.max(N, Math.round(Math.pow(10,lx)));
+      const ly = lratio(M,w); if (!isFinite(ly)) continue;
+      const px = X(Math.log10(M)), py = Y(ly);
+      started ? c.lineTo(px,py) : (c.moveTo(px,py), started=true);
+    }
+    c.stroke();
+    if (K.M >= N || w==='b'){ const ly = lratio(K.M,w); if (isFinite(ly) && Math.log10(K.M)>=xmin-1e-9){ c.fillStyle=col; c.beginPath(); c.arc(X(Math.log10(K.M)), Y(ly), 5, 0, 7); c.fill(); } }
+  });
+}
+$('nPart').addEventListener('input', e => { K.N = +e.target.value; countRender(); });
+$('mStates').addEventListener('input', e => { K.M = +e.target.value; countRender(); });
+document.querySelectorAll('[data-mode]').forEach(b => b.addEventListener('click', () => { K.mode = b.dataset.mode; countRender(); }));
+$('lectureCount').addEventListener('click', () => { K.N=2; K.M=5; $('nPart').value=2; $('mStates').value=5; countRender(); });
+
+/* ================= QUANTUM VOLUME ================= */
+const h = 6.62607015e-34, kB = 1.380649e-23, amu = 1.66053907e-27;
+const MASS = {n2:28.0134*amu, he:4.0026*amu, nu:1.67493e-27, e:9.1093837e-31};
+const PRESETS = {
+  air: {m:'n2', T:300, n:101325/(kB*300)},
+  he:  {m:'he', T:2,   n:145/(4.0026*amu)},
+  cu:  {m:'e',  T:300, n:8.49e28},
+  ns:  {m:'nu', T:1e8, n:1.7e44}
+};
+let jitter = [];
+(function(){ let s=7; const r=()=>{ s=(s*16807)%2147483647; return s/2147483647; }; for (let i=0;i<60;i++) jitter.push([r()-0.5, r()-0.5]); })();
+const UNITS=[[1e-15,'fm'],[1e-12,'pm'],[1e-9,'nm'],[1e-6,'μm'],[1e-3,'mm'],[1,'m']];
+function unitFor(x){ let u=UNITS[0]; for (const v of UNITS) if (x >= v[0]) u=v; return u; }
+function lenStr(x, u){
+  u = u || unitFor(x);
+  const val = x/u[0];
+  const txt = val>=100 ? val.toFixed(0) : val>=10 ? val.toFixed(1) : val>=0.01 ? val.toPrecision(2) : sci(val,2);
+  return txt + ' ' + u[1];
+}
+const VQ = {T:300, n:101325/(kB*300)};
+function vqRender(){
+  const m = MASS[$('massSel').value], T = VQ.T, n = VQ.n;
+  const lQ = h/Math.sqrt(2*Math.PI*m*kB*T), d = Math.pow(n,-1/3), ratio = Math.pow(d/lQ,3);
+  $('tOut').innerHTML = (T>=1e4||T<1 ? sci(T,2) : Math.round(T).toLocaleString('en-US')) + ' K';
+  $('nOut').innerHTML = sci(n,2) + ' m<sup>−3</sup>';
+  const uu = unitFor(Math.max(d,lQ)); $('vqD').innerHTML = lenStr(d,uu); $('vqL').innerHTML = lenStr(lQ,uu); $('vqR').innerHTML = sci(ratio,2);
+  let v;
+  if (ratio > 100) v = 'Classical gas. Particles almost never want the same state, so it doesn’t matter whether they are bosons or fermions.';
+  else if (ratio > 1) v = 'Borderline. The wave packets are starting to overlap, and quantum corrections become noticeable.';
+  else v = 'Quantum gas. The wave packets overlap, so it matters a great deal whether the particles are bosons or fermions.';
+  $('vqVerdict').textContent = v;
+  document.querySelectorAll('[data-preset]').forEach(b => {
+    const p = PRESETS[b.dataset.preset];
+    const on = p.m===$('massSel').value && Math.abs(Math.log10(p.T)-Math.log10(T))<0.005 && Math.abs(Math.log10(p.n)-Math.log10(n))<0.005;
+    b.setAttribute('aria-pressed', String(on));
+  });
+  const c = vqCtx; if (!c) return;
+  const W=640,H=300; c.clearRect(0,0,W,H); c.fillStyle=C.surface; c.fillRect(0,0,W,H);
+  const cols=7, rows=3, sp=86, ox=(W-(cols-1)*sp)/2, oy=(H-(rows-1)*sp)/2;
+  const r = Math.min(4000, 0.5*(lQ/d)*sp);
+  c.save(); c.globalAlpha = 0.28; c.fillStyle = C.res;
+  for (let i=0;i<cols*rows;i++){ const j=jitter[i]; const x=ox+(i%cols)*sp+j[0]*sp*0.55, y=oy+Math.floor(i/cols)*sp+j[1]*sp*0.55; c.beginPath(); c.arc(x,y,Math.max(r,0.6),0,7); c.fill(); }
+  c.restore();
+  c.fillStyle = C.ink;
+  for (let i=0;i<cols*rows;i++){ const j=jitter[i]; const x=ox+(i%cols)*sp+j[0]*sp*0.55, y=oy+Math.floor(i/cols)*sp+j[1]*sp*0.55; c.beginPath(); c.arc(x,y,3.2,0,7); c.fill(); }
+  // label
+  c.fillStyle = C.surface; c.globalAlpha=.9; c.fillRect(10,H-40,250,32); c.globalAlpha=1;
+  c.fillStyle = C.muted;
+  rich(c, 18, H-18, 18, ratio>1 ? [['Normal gas, ','s'],['V','i'],['/','r'],['N','i'],[' ≫ ','r'],['v','i'],['Q','sub']] : [['Quantum gas, ','s'],['V','i'],['/','r'],['N','i'],[' ≲ ','r'],['v','i'],['Q','sub']], 'left');
+}
+$('massSel').addEventListener('input', vqRender);
+$('tLog').addEventListener('input', e => { VQ.T = Math.pow(10, +e.target.value); vqRender(); });
+$('nLog').addEventListener('input', e => { VQ.n = Math.pow(10, +e.target.value); vqRender(); });
+document.querySelectorAll('[data-preset]').forEach(b => b.addEventListener('click', () => {
+  const p = PRESETS[b.dataset.preset];
+  $('massSel').value = p.m; VQ.T = p.T; VQ.n = p.n; $('tLog').value = Math.log10(p.T).toFixed(3); $('nLog').value = Math.log10(p.n).toFixed(3); vqRender();
+}));
+
+/* ================= DISTRIBUTIONS ================= */
+const D = {mu:0.4, kT:0.05, eps:0.5, log:false};
+const fFD = e => 1/(Math.exp((e-D.mu)/D.kT)+1);
+const fBE = e => e > D.mu ? 1/Math.expm1((e-D.mu)/D.kT) : NaN;
+const fBZ = e => Math.exp(-(e-D.mu)/D.kT);
+function distRender(){
+  $('muOut').textContent = D.mu.toFixed(3) + ' eV';
+  $('kTOut').textContent = (D.kT*1000).toFixed(0) + ' meV';
+  $('epsOut').textContent = D.eps.toFixed(3) + ' eV';
+  const u = (D.eps-D.mu)/D.kT;
+  $('uVal').textContent = signed(u,2);
+  const show = v => !isFinite(v) ? '–' : v >= 1e4 || (v>0 && v<1e-3) ? sci(v,3) : v.toFixed(4);
+  $('nFD').innerHTML = show(fFD(D.eps));
+  $('nBE').innerHTML = D.eps > D.mu ? show(fBE(D.eps)) : 'not allowed';
+  $('nBZ').innerHTML = show(fBZ(D.eps));
+  const c = distCtx; if (!c) return;
+  const W=640,H=420,L=50,R=16,T=16,B=60;
+  c.clearRect(0,0,W,H); c.fillStyle=C.surface; c.fillRect(0,0,W,H);
+  const X = e => L + e*(W-L-R);
+  const ylo = D.log ? -4 : 0, yhi = D.log ? 2 : 2.2;
+  const Y = v => { const t = D.log ? Math.log10(Math.max(v,1e-12)) : v; return H-B - (t-ylo)/(yhi-ylo)*(H-T-B); };
+  // forbidden region for bosons
+  c.fillStyle = C.band; c.fillRect(L, T, X(D.mu)-L, H-T-B);
+  // grid + ticks
+  c.font='12px '+SANS; c.fillStyle=C.muted; c.textAlign='right';
+  const yt = D.log ? [1e-4,1e-3,1e-2,0.1,1,10,100] : [0,0.5,1,1.5,2];
+  yt.forEach(v => { c.strokeStyle = v===1 ? C.rule : C.band; c.lineWidth=1; c.beginPath(); c.moveTo(L,Y(v)); c.lineTo(W-R,Y(v)); c.stroke();
+    const lab = D.log ? (v>=1 ? String(v) : v.toString()) : String(v); c.fillText(lab, L-8, Y(v)+4); });
+  c.textAlign='center';
+  for (let e=0;e<=1.0001;e+=0.2){ c.fillText(e.toFixed(1), X(e), H-B+16); }
+  c.strokeStyle=C.muted; c.lineWidth=1; c.beginPath(); c.moveTo(L,T); c.lineTo(L,H-B); c.lineTo(W-R,H-B); c.stroke();
+  // mu and mu + kT markers
+  c.strokeStyle=C.muted; c.setLineDash([3,4]); c.beginPath(); c.moveTo(X(D.mu),T); c.lineTo(X(D.mu),H-B); c.stroke(); c.setLineDash([]);
+  c.fillStyle=C.ink; rich(c, X(D.mu), H-B+34, 16, [['μ','i']], 'center');
+  if (D.mu + D.kT <= 1){ c.strokeStyle=C.muted; c.beginPath(); c.moveTo(X(D.mu+D.kT),H-B); c.lineTo(X(D.mu+D.kT),H-B+6); c.stroke();
+    c.fillStyle=C.muted; rich(c, X(D.mu+D.kT) + Math.max(0, 50 - (X(D.mu+D.kT)-X(D.mu))), H-B+34, 14, [['μ','i'],[' + ','r'],['k','i'],['B','sub'],['T','i']], 'center'); }
+  c.fillStyle=C.muted; rich(c, W-R-6, H-B+52, 15, [['ε','i'],['  (eV)','s']], 'right');
+  rich(c, L+8, T+14, 16, [['n','ibar'],['  occupancy','s']], 'left');
+  // curves
+  c.save(); c.beginPath(); c.rect(L,T,W-L-R,H-T-B); c.clip();
+  const curve = (f, col, start, dash) => {
+    c.strokeStyle=col; c.lineWidth=2.6; c.setLineDash(dash||[]); c.beginPath(); let st=false;
+    for (let i=0;i<=700;i++){ const e = start + (1-start)*i/700; const v=f(e); if (!isFinite(v)) { st=false; continue; } const px=X(e), py=Y(Math.min(v,1e6)); st ? c.lineTo(px,py) : (c.moveTo(px,py), st=true); }
+    c.stroke(); c.setLineDash([]);
+  };
+  curve(fBZ, C.boltz, 0, [7,5]);
+  curve(fBE, C.boson, D.mu + 1e-6);
+  curve(fFD, C.fermion, 0);
+  // probe
+  c.strokeStyle=C.ink; c.lineWidth=1; c.globalAlpha=.6; c.beginPath(); c.moveTo(X(D.eps),T); c.lineTo(X(D.eps),H-B); c.stroke(); c.globalAlpha=1;
+  [[fFD,C.fermion],[fBE,C.boson],[fBZ,C.boltz]].forEach(([f,col]) => { const v=f(D.eps); if (isFinite(v)){ c.fillStyle=col; c.beginPath(); c.arc(X(D.eps),Y(Math.min(v,1e6)),5,0,7); c.fill(); } });
+  // half marker for FD
+  c.fillStyle=C.fermion; c.beginPath(); c.arc(X(D.mu),Y(0.5),3.5,0,7); c.fill();
+  c.restore();
+  c.fillStyle=C.muted; c.font='12px '+SANS; c.textAlign='left';
+  if (X(D.mu)-L > 120) c.fillText('bosons not allowed', L+10, H-B-10);
+  pnRender();
+}
+function pnRender(){
+  const c = pnCtx; if (!c) return;
+  const W=900,H=230,T=34,B=36;
+  c.clearRect(0,0,W,H); c.fillStyle=C.surface; c.fillRect(0,0,W,H);
+  const x = Math.exp(-(D.eps-D.mu)/D.kT);
+  const group = (x0, w, probs, col, title) => {
+    c.fillStyle=C.ink; c.font='600 14px '+SANS; c.textAlign='left'; c.fillText(title, x0, 22);
+    const bw = w/probs.length;
+    probs.forEach((p,i) => {
+      const bh = p*(H-T-B); c.fillStyle=col; c.fillRect(x0+i*bw+bw*0.18, H-B-bh, bw*0.64, bh);
+      c.fillStyle=C.muted; c.font='12px '+SANS; c.textAlign='center';
+      c.fillText(String(i), x0+i*bw+bw/2, H-B+16);
+      if (p>0.005){ c.fillText(p.toFixed(2), x0+i*bw+bw/2, H-B-bh-6); }
+    });
+    c.strokeStyle=C.rule; c.beginPath(); c.moveTo(x0,H-B); c.lineTo(x0+w,H-B); c.stroke();
+    c.fillStyle=C.muted; rich(c, x0+w, H-6, 14, [['n','i']], 'right');
+  };
+  const pf1 = x/(1+x);
+  group(30, 200, [1-pf1, pf1], C.fermion, 'Fermions');
+  if (D.eps > D.mu){
+    const probs = []; for (let n=0;n<10;n++) probs.push((1-x)*Math.pow(x,n));
+    group(300, 570, probs, C.boson, 'Bosons');
+  } else {
+    c.fillStyle=C.ink; c.font='600 14px '+SANS; c.textAlign='left'; c.fillText('Bosons', 300, 22);
+    c.fillStyle=C.muted; c.font='14px '+SANS; c.fillText('With ε ≤ μ the Gibbs sum diverges, so this state is not allowed for bosons.', 300, H/2+4);
+  }
+}
+$('muS').addEventListener('input', e => { D.mu = +e.target.value; distRender(); });
+$('kTS').addEventListener('input', e => { D.kT = +e.target.value; distRender(); });
+$('epsS').addEventListener('input', e => { D.eps = +e.target.value; distRender(); });
+$('logY').addEventListener('change', e => { D.log = e.target.checked; distRender(); });
+
+/* ================= LAYOUT ================= */
+let convCtx, vqCtx, distCtx, pnCtx;
+function layout(){
+  convCtx = fit($('convCanvas'), 900, 260);
+  vqCtx = fit($('vqCanvas'), 640, 300);
+  distCtx = fit($('distCanvas'), 640, 420);
+  pnCtx = fit($('pnCanvas'), 900, 230);
+  redrawAll();
+}
+function redrawAll(){ countRender(); vqRender(); distRender(); }
+let rt; window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(layout, 80); });
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { readColors(); redrawAll(); });
+const p0 = PRESETS.air; VQ.T = p0.T; VQ.n = p0.n; $('massSel').value = p0.m; $('tLog').value = Math.log10(p0.T).toFixed(3); $('nLog').value = Math.log10(p0.n).toFixed(3);
+layout();
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(redrawAll);
+})();
+</script>
+</body>
+</html>
