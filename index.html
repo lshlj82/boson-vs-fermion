@@ -50,6 +50,12 @@ p{margin:0 0 1rem}
 .note{font-size:.95rem;color:var(--muted)}
 
 .eq{display:block;text-align:center;margin:1.25rem 0;overflow-x:auto;overflow-y:hidden;padding:.25rem 0}
+.eq.multi{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;column-gap:2.2em;row-gap:.65rem}
+.boxed.multi{display:inline-flex;flex-wrap:wrap;justify-content:center;align-items:center;column-gap:2em;row-gap:.6rem;max-width:100%}
+.eqp{max-width:100%}
+.eqp.sep{margin-left:1.85em}
+.multi:not(.chain) > .eqp.cont{margin-left:-1.85em}
+.multi.chain{column-gap:.35em}
 mjx-container{color:inherit}
 mjx-container[display="true"]{margin:0 !important}
 .stats mjx-container,.legend mjx-container,.cap mjx-container,.ctl small mjx-container{font-size:105%}
@@ -243,9 +249,9 @@ window.MathJax = {
   <h2 id="h-dist">The distribution functions</h2>
   <div class="prose">
     <p>Use the Gibbs factor, with a twist: let the <em>system</em> be one single-particle state of energy \(\varepsilon\), and the reservoir be all the other single-particle states. If the state holds \(n\) particles, its energy is \(n\varepsilon\), so</p>
-    <div class="eq"><span class="boxed">\( \displaystyle P(n) = \frac{1}{\mathcal{Z}}\, e^{-(n\varepsilon - \mu n)/k_{\mathrm{B}}T} = \frac{1}{\mathcal{Z}}\, e^{-n(\varepsilon - \mu)/k_{\mathrm{B}}T} \)</span></div>
+    <div class="eq"><span class="boxed multi chain"><span class="eqp">\( \displaystyle P(n) = \frac{1}{\mathcal{Z}}\, e^{-(n\varepsilon - \mu n)/k_{\mathrm{B}}T} \)</span><span class="eqp">\( \displaystyle = \frac{1}{\mathcal{Z}}\, e^{-n(\varepsilon - \mu)/k_{\mathrm{B}}T} \)</span></span></div>
     <p>where \(\mathcal{Z}\) sums the Gibbs factors over all <em>possible</em> \(n\). For fermions, \(n = 0\) or \(1\):</p>
-    <div class="eq">\[ \mathcal{Z} = 1 + e^{-(\varepsilon-\mu)/k_{\mathrm{B}}T}, \qquad \bar{n} = 0\cdot P(0) + 1\cdot P(1) = \frac{e^{-(\varepsilon-\mu)/k_{\mathrm{B}}T}}{1 + e^{-(\varepsilon-\mu)/k_{\mathrm{B}}T}} \]</div>
+    <div class="eq multi"><span class="eqp">\( \displaystyle \mathcal{Z} = 1 + e^{-(\varepsilon-\mu)/k_{\mathrm{B}}T}, \)</span><span class="eqp">\( \displaystyle \bar{n} = 0\cdot P(0) + 1\cdot P(1) = \frac{e^{-(\varepsilon-\mu)/k_{\mathrm{B}}T}}{1 + e^{-(\varepsilon-\mu)/k_{\mathrm{B}}T}} \)</span></div>
     <div class="eq"><span class="boxed f">\( \displaystyle \bar{n}_{\mathrm{FD}} = \frac{1}{e^{(\varepsilon-\mu)/k_{\mathrm{B}}T} + 1} \)</span>&ensp;<span class="note">Fermi–Dirac</span></div>
     <p>For bosons, \(n = 0, 1, 2, \ldots\), and the Gibbs sum is a geometric series in \(x = e^{-(\varepsilon-\mu)/k_{\mathrm{B}}T}\). It converges only if \(x < 1\), so only states with \(\varepsilon > \mu\) are allowed:</p>
     <div class="eq">\[ \mathcal{Z} = \sum_{n=0}^{\infty} x^n = \frac{1}{1 - e^{-(\varepsilon-\mu)/k_{\mathrm{B}}T}} \]</div>
