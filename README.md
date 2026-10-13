@@ -31,6 +31,15 @@ n̄_Boltzmann = exp[−(ε − μ)/k_B T]
 
 An interactive chart plots all three against energy, with sliders for μ and k<sub>B</sub>T and a movable probe energy. A second chart shows the probe state's occupation probabilities *P*(*n*): empty or full for fermions, geometric for bosons. A logarithmic axis makes the classical limit, ε − μ ≫ k<sub>B</sub>T, easy to see.
 
+## See also
+
+**[Fermions and bosons on a ladder](https://lshlj82.github.io/FD-BE-from-isolated-systems/)** ([한국어](https://lshlj82.github.io/FD-BE-from-isolated-systems/ko.html), [source](https://github.com/lshlj82/FD-BE-from-isolated-systems)) is a supplementary page on small isolated systems of fermions and bosons with evenly spaced levels (Problems 7.16 and 7.17). There, every microstate is a partition of an integer. The page:
+
+- counts the microstates exactly;
+- fits the Fermi–Dirac and Bose–Einstein distributions to the exact occupancies;
+- compares temperature estimates from the fits and from the entropy;
+- contrasts the isolated, canonical, and grand canonical ensembles.
+
 ## Running it
 
 There is nothing to build or install. The whole demo is one self-contained file, `index.html`, with all CSS and JavaScript inline.
